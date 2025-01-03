@@ -1,2 +1,4 @@
-The files in this directory are originally from:
-https://github.com/microbit-foundation/python-editor-next/tree/6fa2d56445e103f575141cfbae6dd4986b698f83/public
+This is a special build of Pyright that can run in a Web Worker in a browser.
+
+Built from sources at: https://github.com/posit-dev/pyright/
+Commit bca118334c42069ee007c63caf1287ae1f733d53

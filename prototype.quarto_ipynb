@@ -1,0 +1,270 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "---\n",
+        "title: \"Shiny Live Dataviz Prototype\"\n",
+        "format:\n",
+        "  html:\n",
+        "    code-fold: true\n",
+        "jupyter: python3\n",
+        "---\n",
+        "\n",
+        "Prototyping the Shinylive dashboard data visualization.\n",
+        "\n",
+        "### Dependcies\n"
+      ],
+      "id": "f32323c4"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "from numpy import random \n",
+        "import pandas as pd\n",
+        "import plotly.express as px\n",
+        "import plotly.graph_objects as go"
+      ],
+      "id": "c4ff3744",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Generating random numbers - either 1 or -1 with the `random` function:"
+      ],
+      "id": "a428dad1"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "r = random.randint(low = -1, high=1, size= 10, dtype=int).tolist()\n",
+        "print(type(r))\n",
+        "r = [1 if i == 0 else i for i in r]\n",
+        "r"
+      ],
+      "id": "ee256559",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Create a function for generating random numbers by range of numbers:"
+      ],
+      "id": "a946fa59"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "def random_steps(steps = 16, type = \"float\", low = -1, high = 1):\n",
+        "    if type == \"int\":\n",
+        "        r = random.randint(low = low, high=high, size= steps, dtype=int).tolist()\n",
+        "        r = [high if i == 0 else i for i in r]\n",
+        "    elif type == \"float\":\n",
+        "        r = (high - low) * random.random_sample(size = steps) + low\n",
+        "    else:\n",
+        "        print(\"The type argument is not valid\")\n",
+        "        return\n",
+        "    return r"
+      ],
+      "id": "8320d5ff",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Create a cumsum function:"
+      ],
+      "id": "23bbd8f2"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "def cumsum(l):\n",
+        "    c = []\n",
+        "    t = 0\n",
+        "    for i in range(0, len(l)):\n",
+        "        t += l[i]\n",
+        "        c.append(t)\n",
+        "    return(c)"
+      ],
+      "id": "d1becc2a",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Create a simulation function:"
+      ],
+      "id": "ee392f12"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "def sim_steps(sim_number = 10, steps = 16, type = \"float\"):\n",
+        "    s = []\n",
+        "    d = pd.DataFrame()\n",
+        "    for i in range(0, sim_number):\n",
+        "        v1 = [0]\n",
+        "        v2 = random_steps(steps = steps, type = type)\n",
+        "        if not isinstance(v2, list):\n",
+        "            v2 = v2.tolist()\n",
+        "        v = cumsum(v1 + v2)\n",
+        "        d_temp = pd.DataFrame({\"sim\": i, \"step\": range(0, len(v)), \"y\": v})\n",
+        "        d = pd.concat([d, d_temp])\n",
+        "    return d"
+      ],
+      "id": "e529fc6b",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "Test the function:"
+      ],
+      "id": "3cc8e206"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "sim_df = sim_steps(sim_number = 5, type = \"int\")\n",
+        "sim_df"
+      ],
+      "id": "d4753869",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "sim_test = sim_steps(sim_number = 5, type = \"float\")\n",
+        "sim_test"
+      ],
+      "id": "1d72242b",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "sim_df.sim.unique()"
+      ],
+      "id": "d60f313f",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "sim_df = sim_steps(sim_number = 1000, type = \"float\")"
+      ],
+      "id": "2a44524e",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Plotting with Plotly:"
+      ],
+      "id": "61443a78"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "def plotly_sim(sim_number = 10, steps = 16, type = \"float\"):\n",
+        "    sim_df = sim_steps(sim_number = sim_number, steps = steps, type = type)\n",
+        "    p = go.Figure()\n",
+        "    for i in sim_df.sim.unique():\n",
+        "        df = sim_df[sim_df[\"sim\"] == i]\n",
+        "        p.add_trace(go.Scatter(x=df[\"step\"], y=df[\"y\"],\n",
+        "                    mode='lines',\n",
+        "                    name='lines',\n",
+        "                    showlegend = False,\n",
+        "                    line=dict(color=\"rgba( 143, 82, 244,0.1)\" , width=1)))\n",
+        "    return p.show()"
+      ],
+      "id": "240840fb",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "plotly_sim(sim_number = 1000, steps = 16, type = \"float\")"
+      ],
+      "id": "6f21c688",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "### Plotting with matplotlib\n"
+      ],
+      "id": "ce76beaf"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import matplotlib.pyplot as plt\n",
+        "\n",
+        "def plot_sim(sim_number = 10, steps = 16, type = \"float\", color = \"lightblue\", alpha = 0.2):\n",
+        "    sim_df = sim_steps(sim_number = sim_number, steps = steps, type = type)\n",
+        "    \n",
+        "    for i in sim_df.sim.unique():\n",
+        "        df = sim_df[sim_df[\"sim\"] == i]\n",
+        "        plt.plot(df[\"step\"], df[\"y\"], color = color, alpha= alpha)\n",
+        "    return plt.show()"
+      ],
+      "id": "33a9255a",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "plot_sim(sim_number = 1000, steps = 16, type = \"float\", color = \"lightblue\", alpha = 0.2)"
+      ],
+      "id": "f5f723ed",
+      "execution_count": null,
+      "outputs": []
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "python3",
+      "language": "python",
+      "display_name": "Python 3 (ipykernel)",
+      "path": "C:\\Users\\user\\AppData\\Roaming\\Python\\share\\jupyter\\kernels\\python3"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 5
+}
