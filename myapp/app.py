@@ -41,14 +41,14 @@ def sim_steps(sim_number = 10, steps = 16, type = "float"):
 # UI
 app_ui = ui.page_fluid(
         ui.layout_sidebar(
-            ui.panel_sidebar(
+            ui.sidebar(
                 ui.h2("Why normal distributions are normal"),
                 ui.input_slider("sample_size", "Sample Size", 1, 1000, 500),
                 ui.input_slider("steps", "Number of Steps", 1, 20, 16),
                 ui.input_select("step", "Step Type", {"float": "Float", "int": "Integer"}),
                 ui.input_slider("alpha", "Color Opacity", 0, 1, 0.2)
             ),
-        ui.panel_main(
+        ui.card(
             ui.output_plot("plot"),
             ui.markdown(
         """
